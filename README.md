@@ -1,7 +1,7 @@
 # Getting Started
 
 This repository contains a simple utility to resolve a given IP address and
-port using libfabric and the usNIC provider.
+port using libfabric.
 
 ## Building
 
@@ -27,6 +27,7 @@ Usage:  ./src/fi_resolve [options] <address>
 
         -f, <fabric name>       fabric to bind to
         -p, <port>              port to resolve (default: 1337)
+        -P, <provider name>     libfabric provider to use
         -h,                     print this help and exit
 ```
 
