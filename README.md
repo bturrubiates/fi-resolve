@@ -25,10 +25,10 @@ A simple libfabric application to resolve an address
 
 Usage:  ./src/fi_resolve [options] <address>
 
-        -f, <fabric name>       fabric to bind to
-        -p, <port>              port to resolve (default: 1337)
-        -P, <provider name>     libfabric provider to use
-        -h,                     print this help and exit
+-f, <fabric name>       fabric to bind to
+-p, <port>              port to resolve (default: 1337)
+-P, <provider name>     libfabric provider to use
+-h,                     print this help and exit
 ```
 
 ## Why?

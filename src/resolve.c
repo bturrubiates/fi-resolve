@@ -216,10 +216,10 @@ void print_usage(const char *program_name, FILE *stream)
 	fprintf(stream,
 		"A simple libfabric application to resolve an address\n\n");
 	fprintf(stream, "Usage:\t%s [options] <address>\n\n", program_name);
-	fprintf(stream, "\t-f, <fabric name>\tfabric to bind to\n");
-	fprintf(stream, "\t-p, <port>\t\tport to resolve (default: 1337)\n");
-	fprintf(stream, "\t-P, <provider name>\tlibfabric provider to use\n");
-	fprintf(stream, "\t-h,\t\t\tprint this help and exit\n");
+	fprintf(stream, "-f, <fabric name>\tfabric to bind to\n");
+	fprintf(stream, "-p, <port>\t\tport to resolve (default: 1337)\n");
+	fprintf(stream, "-P, <provider name>\tlibfabric provider to use\n");
+	fprintf(stream, "-h,\t\t\tprint this help and exit\n");
 }
 
 int main(int argc, char **argv)
