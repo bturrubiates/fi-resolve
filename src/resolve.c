@@ -72,7 +72,8 @@ void die(const char *file, const char *func, int line, const char *fmt, ...)
 /******************************************************************************
  * Libfabric resource management
  *****************************************************************************/
-void setup_fabric(struct comm_context *context, const char *fabric_name)
+void setup_fabric(struct comm_context *context, const char *provider_name,
+		  const char *fabric_name)
 {
 	struct fi_info *hints;
 	int ret;
@@ -81,9 +82,14 @@ void setup_fabric(struct comm_context *context, const char *fabric_name)
 	if (!hints)
 		DIE("unable to allocate space for hints\n");
 
-	hints->fabric_attr->prov_name = strdup("usnic");
+	if (provider_name)
+		hints->fabric_attr->prov_name = strdup(provider_name);
 	if (fabric_name)
 		hints->fabric_attr->name = strdup(fabric_name);
+
+	DEBUG("provided provider name hint: %s\n",
+	      hints->fabric_attr->prov_name);
+	DEBUG("provided fabric name hint: %s\n", hints->fabric_attr->name);
 
 	hints->ep_attr->type = FI_EP_DGRAM;
 
@@ -97,11 +103,13 @@ void setup_fabric(struct comm_context *context, const char *fabric_name)
 
 	fi_freeinfo(hints);
 
-	DEBUG("binding to: %s\n", context->info->fabric_attr->name);
-
 	ret = fi_fabric(context->info->fabric_attr, &context->fabric, NULL);
 	if (ret)
 		DIE("fi_fabric: %s\n", fi_strerror(-ret));
+
+	DEBUG("opened fabric with provider: %s\n",
+	      context->info->fabric_attr->prov_name);
+	DEBUG("bound to: %s\n", context->info->fabric_attr->name);
 }
 
 void setup_resources(struct comm_context *context)
@@ -210,17 +218,19 @@ void print_usage(const char *program_name, FILE *stream)
 	fprintf(stream, "Usage:\t%s [options] <address>\n\n", program_name);
 	fprintf(stream, "\t-f, <fabric name>\tfabric to bind to\n");
 	fprintf(stream, "\t-p, <port>\t\tport to resolve (default: 1337)\n");
+	fprintf(stream, "\t-P, <provider name>\tlibfabric provider to use\n");
 	fprintf(stream, "\t-h,\t\t\tprint this help and exit\n");
 }
 
 int main(int argc, char **argv)
 {
 	struct comm_context context;
+	const char *provider_name = NULL;
 	const char *fabric_name = NULL;
 	const char *address = NULL;
 
-	/* If fi_av_insertsvc is given 0 as the port, it will return -FI_EINVAL.
-	 * Arbitrarily pick 1337 as the default port.
+	/* If fi_av_insertsvc is given 0 as the port for usNIC, it will return
+	 * -FI_EINVAL. Arbitrarily pick 1337 as the default port.
 	 */
 	const char *port = "1337";
 	int c;
@@ -228,13 +238,16 @@ int main(int argc, char **argv)
 	/* Older versions of GCC seem to dislike the {0} notation. */
 	memset(&context, 0, sizeof(context));
 
-	while ((c = getopt(argc, argv, "hf:p:")) != -1) {
+	while ((c = getopt(argc, argv, "hf:p:P:")) != -1) {
 		switch (c) {
 		case 'f':
 			fabric_name = optarg;
 			break;
 		case 'p':
 			port = optarg;
+			break;
+		case 'P':
+			provider_name = optarg;
 			break;
 		case 'h':
 			print_usage(argv[0], stdout);
@@ -254,7 +267,7 @@ int main(int argc, char **argv)
 
 	address = argv[optind];
 
-	setup_fabric(&context, fabric_name);
+	setup_fabric(&context, provider_name, fabric_name);
 	setup_resources(&context);
 	resolve_address(&context, address, port);
 	free_resources(&context);
