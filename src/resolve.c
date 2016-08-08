@@ -205,7 +205,7 @@ void resolve_address(struct comm_context *context, const char *addr,
 	if (ret)
 		DIE("fi_av_lookup: %s\n", fi_strerror(-ret));
 
-	size = sizeof(resolved_addr);
+	size = sizeof(buf);
 	fi_av_straddr(context->av, &resolved_addr, buf, &size);
 
 	printf("Successfully resolved address to %s\n", buf);
