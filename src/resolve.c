@@ -153,7 +153,7 @@ void handle_error(struct comm_context *context)
 	       fi_strerror(err_entry.err));
 }
 
-void resolve_address(struct comm_context *context, const char *addr,
+int resolve_address(struct comm_context *context, const char *addr,
 		     const char *port)
 {
 	struct fi_eq_entry entry;
@@ -172,7 +172,7 @@ void resolve_address(struct comm_context *context, const char *addr,
 	if (ret < 0) {
 		if (ret == -FI_EAVAIL) {
 			handle_error(context);
-			return;
+			return EXIT_FAILURE;
 		}
 
 		DIE("fi_eq_sread: %s\n", fi_strerror(-ret));
@@ -193,6 +193,8 @@ void resolve_address(struct comm_context *context, const char *addr,
 	fi_av_straddr(context->av, &resolved_addr, buf, &size);
 
 	printf("Successfully resolved address to %s\n", buf);
+
+	return EXIT_SUCCESS;
 }
 
 void print_usage(const char *program_name, FILE *stream)
@@ -217,6 +219,7 @@ int main(int argc, char **argv)
 	 * -FI_EINVAL. Arbitrarily pick 1337 as the default port.
 	 */
 	const char *port = "1337";
+	int ret;
 	int c;
 
 	/* Older versions of GCC seem to dislike the {0} notation. */
@@ -253,8 +256,8 @@ int main(int argc, char **argv)
 
 	setup_fabric(&context, provider_name, fabric_name);
 	setup_resources(&context);
-	resolve_address(&context, address, port);
+	ret = resolve_address(&context, address, port);
 	free_resources(&context);
 
-	return 0;
+	return ret;
 }
