@@ -10,11 +10,16 @@
 
 #include "config.h"
 
-#define DIE(...) die(__FILE__, __func__, __LINE__, __VA_ARGS__)
-#define WARN(...) info(__FILE__, __func__, __LINE__, __VA_ARGS__)
+#define DIE(...)                                                               \
+	do {                                                                   \
+		log_(__FILE__, __func__, __LINE__, __VA_ARGS__);               \
+		exit(EXIT_FAILURE);                                            \
+	} while (0)
+
+#define WARN(...) log_(__FILE__, __func__, __LINE__, __VA_ARGS__)
 
 #if ENABLE_DEBUG
-#define DEBUG(...) info(__FILE__, __func__, __LINE__, __VA_ARGS__)
+#define DEBUG(...) log_(__FILE__, __func__, __LINE__, __VA_ARGS__)
 #else
 #define DEBUG(...)
 #endif
@@ -30,43 +35,22 @@ struct comm_context {
 /******************************************************************************
  * Logging related code
  *****************************************************************************/
-void vlogf(const char *file, const char *func, int line, const char *fmt,
-	   va_list vargs)
+void log_(const char *file, const char *func, int line, const char *fmt, ...)
 {
 	char buf[8192] = {0};
+	va_list vargs;
 	int size = 0;
 
 	/* Log in the format:
 	 *   [FILE]:FUNCTION():<LINE>: message
 	 */
 	size = snprintf(buf, sizeof(buf), "[%s]:%s():<%d> ", file, func, line);
-	vsnprintf(buf + size, sizeof(buf) - size, fmt, vargs);
-
-	fprintf(stderr, "%s", buf);
-}
-
-/* Log the given message.
- */
-void info(const char *file, const char *func, int line, const char *fmt, ...)
-{
-	va_list vargs;
 
 	va_start(vargs, fmt);
-	vlogf(file, func, line, fmt, vargs);
+	vsnprintf(buf + size, sizeof(buf) - size, fmt, vargs);
 	va_end(vargs);
-}
 
-/* Log the message and exit with failure exit code.
- */
-void die(const char *file, const char *func, int line, const char *fmt, ...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	vlogf(file, func, line, fmt, args);
-	va_end(args);
-
-	exit(EXIT_FAILURE);
+	fprintf(stderr, "%s", buf);
 }
 
 /******************************************************************************
